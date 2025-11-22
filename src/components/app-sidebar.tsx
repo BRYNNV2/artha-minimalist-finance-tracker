@@ -1,81 +1,90 @@
 import React from "react";
-import { Home, Layers, Compass, Star, Settings, LifeBuoy } from "lucide-react";
+import { 
+  Home, 
+  Wallet, 
+  PieChart, 
+  Settings, 
+  CreditCard,
+  LogOut
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
   SidebarHeader,
-  SidebarSeparator,
-  SidebarInput,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarMenuAction,
-  SidebarMenuBadge,
+  SidebarSeparator,
 } from "@/components/ui/sidebar";
-
 export function AppSidebar(): JSX.Element {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1">
-          <div className="h-6 w-6 rounded-md bg-gradient-to-br from-indigo-500 to-purple-500" />
-          <span className="text-sm font-medium">Template</span>
+        <div className="flex items-center gap-3 px-4 py-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white font-bold text-lg shadow-glow">
+            A
+          </div>
+          <span className="text-lg font-bold tracking-tight">Artha</span>
         </div>
-        <SidebarInput placeholder="Search" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive>
-                <a href="#"><Home /> <span>Home</span></a>
+              <SidebarMenuButton asChild isActive tooltip="Dashboard">
+                <a href="#" className="flex items-center gap-3">
+                  <Home className="h-5 w-5" /> 
+                  <span className="font-medium">Dashboard</span>
+                </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <a href="#"><Layers /> <span>Projects</span></a>
+              <SidebarMenuButton asChild tooltip="Transactions">
+                <a href="#" className="flex items-center gap-3">
+                  <Wallet className="h-5 w-5" /> 
+                  <span className="font-medium">Transactions</span>
+                </a>
               </SidebarMenuButton>
-              <SidebarMenuAction>
-                <Star className="size-4" />
-              </SidebarMenuAction>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <a href="#"><Compass /> <span>Explore</span></a>
+              <SidebarMenuButton asChild tooltip="Analytics">
+                <a href="#" className="flex items-center gap-3">
+                  <PieChart className="h-5 w-5" /> 
+                  <span className="font-medium">Analytics</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Cards">
+                <a href="#" className="flex items-center gap-3">
+                  <CreditCard className="h-5 w-5" /> 
+                  <span className="font-medium">My Cards</span>
+                </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
-
         <SidebarSeparator />
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Quick Links</SidebarGroupLabel>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <a href="#"><Star /> <span>Starred</span></a>
-              </SidebarMenuButton>
-              <SidebarMenuBadge>5</SidebarMenuBadge>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <a href="#"><LifeBuoy /> <span>Support</span></a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <a href="#"><Settings /> <span>Settings</span></a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <div className="px-2 text-xs text-muted-foreground">A simple shadcn sidebar</div>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Settings">
+              <a href="#" className="flex items-center gap-3">
+                <Settings className="h-5 w-5" /> 
+                <span className="font-medium">Settings</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20">
+              <LogOut className="h-5 w-5" />
+              <span className="font-medium">Logout</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );

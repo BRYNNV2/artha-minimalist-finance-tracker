@@ -2,7 +2,7 @@
  * Minimal real-world demo: One Durable Object instance per entity (User, ChatBoard), with Indexes for listing.
  */
 import { IndexedEntity } from "./core-utils";
-import type { User, Chat, ChatMessage } from "@shared/types";
+import type { User, Chat, ChatMessage, FinanceAccount, Transaction, FinanceStat } from "@shared/types";
 import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS } from "@shared/mock-data";
 
 // USER ENTITY: one DO instance per user
@@ -39,3 +39,41 @@ export class ChatBoardEntity extends IndexedEntity<ChatBoardState> {
   }
 }
 
+
+
+// FINANCE ACCOUNT ENTITY
+export class FinanceAccountEntity extends IndexedEntity<FinanceAccount> {
+  static readonly entityName = "finance";
+  static readonly indexName = "finance-accounts";
+  static readonly initialState: FinanceAccount = {
+    id: "",
+    transactions: [],
+    stats: { balance: 0, income: 0, expenses: 0 }
+  };
+
+  async addTransaction(tx: Omit<Transaction, 'id' | 'createdAt'>): Promise<Transaction> {
+    const newTx: Transaction = {
+      ...tx,
+      id: crypto.randomUUID(),
+      createdAt: Date.now()
+    };
+
+    await this.mutate(state => {
+      const transactions = [newTx, ...state.transactions];
+      const stats = transactions.reduce((acc, t) => {
+        if (t.type === 'income') {
+          acc.income += t.amount;
+          acc.balance += t.amount;
+        } else {
+          acc.expenses += t.amount;
+          acc.balance -= t.amount;
+        }
+        return acc;
+      }, { balance: 0, income: 0, expenses: 0 } as FinanceStat);
+
+      return { ...state, transactions, stats };
+    });
+
+    return newTx;
+  }
+}

@@ -22,3 +22,27 @@ export interface ChatMessage {
   text: string;
   ts: number; // epoch millis
 }
+
+export type TransactionType = 'income' | 'expense';
+
+export interface Transaction {
+  id: string;
+  amount: number;
+  type: TransactionType;
+  category: string;
+  date: string; // ISO date string
+  description?: string;
+  createdAt: number;
+}
+
+export interface FinanceStat {
+  balance: number;
+  income: number;
+  expenses: number;
+}
+
+export interface FinanceAccount {
+  id: string;
+  transactions: Transaction[];
+  stats: FinanceStat;
+}

@@ -1,148 +1,112 @@
-// Home page of the app, Currently a demo page for demonstration.
-// Please rewrite this file to implement your own logic. Do not replace or delete it, simply rewrite this HomePage.tsx file.
-import { useEffect } from 'react'
-import { Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { ThemeToggle } from '@/components/ThemeToggle'
-import { Toaster, toast } from '@/components/ui/sonner'
-import { create } from 'zustand'
-import { useShallow } from 'zustand/react/shallow'
-import { AppLayout } from '@/components/layout/AppLayout'
-
-// Timer store: independent slice with a clear, minimal API, for demonstration
-type TimerState = {
-  isRunning: boolean;
-  elapsedMs: number;
-  start: () => void;
-  pause: () => void;
-  reset: () => void;
-  tick: (deltaMs: number) => void;
-}
-
-const useTimerStore = create<TimerState>((set) => ({
-  isRunning: false,
-  elapsedMs: 0,
-  start: () => set({ isRunning: true }),
-  pause: () => set({ isRunning: false }),
-  reset: () => set({ elapsedMs: 0, isRunning: false }),
-  tick: (deltaMs) => set((s) => ({ elapsedMs: s.elapsedMs + deltaMs })),
-}))
-
-// Counter store: separate slice to showcase multiple stores without coupling
-type CounterState = {
-  count: number;
-  inc: () => void;
-  reset: () => void;
-}
-
-const useCounterStore = create<CounterState>((set) => ({
-  count: 0,
-  inc: () => set((s) => ({ count: s.count + 1 })),
-  reset: () => set({ count: 0 }),
-}))
-
-function formatDuration(ms: number): string {
-  const total = Math.max(0, Math.floor(ms / 1000))
-  const m = Math.floor(total / 60)
-  const s = total % 60
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
-
+import React, { useEffect, useState, useCallback } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { SummaryCards } from '@/components/dashboard/summary-cards';
+import { TransactionList } from '@/components/dashboard/transaction-list';
+import { OverviewChart } from '@/components/dashboard/overview-chart';
+import { TransactionForm } from '@/components/dashboard/transaction-form';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { api } from '@/lib/api-client';
+import { FinanceAccount, Transaction } from '@shared/types';
+import { toast, Toaster } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
+import { motion } from 'framer-motion';
+// Demo User ID - In a real app this would come from auth
+const DEMO_USER_ID = 'demo-user-1';
 export function HomePage() {
-  // Select only what is needed to avoid unnecessary re-renders
-  const { isRunning, elapsedMs } = useTimerStore(
-    useShallow((s) => ({ isRunning: s.isRunning, elapsedMs: s.elapsedMs })),
-  )
-  const start = useTimerStore((s) => s.start)
-  const pause = useTimerStore((s) => s.pause)
-  const resetTimer = useTimerStore((s) => s.reset)
-  const count = useCounterStore((s) => s.count)
-  const inc = useCounterStore((s) => s.inc)
-  const resetCount = useCounterStore((s) => s.reset)
-
-  // Drive the timer only while running; avoid update-depth issues with a scoped RAF
+  const [account, setAccount] = useState<FinanceAccount | null>(null);
+  const [loading, setLoading] = useState(true);
+  const fetchAccount = useCallback(async () => {
+    try {
+      // In a real scenario, this fetches the single FinanceAccountEntity state
+      const data = await api<FinanceAccount>(`/api/finance/account/${DEMO_USER_ID}`);
+      setAccount(data);
+    } catch (error) {
+      console.error('Failed to fetch account:', error);
+      toast.error('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
   useEffect(() => {
-    if (!isRunning) return
-    let raf = 0
-    let last = performance.now()
-    const loop = () => {
-      const now = performance.now()
-      const delta = now - last
-      last = now
-      // Read store API directly to keep effect deps minimal and stable
-      useTimerStore.getState().tick(delta)
-      raf = requestAnimationFrame(loop)
+    fetchAccount();
+  }, [fetchAccount]);
+  const handleAddTransaction = async (data: any) => {
+    try {
+      const newTx = await api<Transaction>(`/api/finance/transactions/${DEMO_USER_ID}`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      toast.success('Transaction added successfully');
+      // Optimistic update or refetch
+      // Refetch is safer for ensuring stats consistency calculated by backend
+      await fetchAccount();
+    } catch (error) {
+      console.error('Failed to add transaction:', error);
+      toast.error('Failed to save transaction');
     }
-    raf = requestAnimationFrame(loop)
-    return () => cancelAnimationFrame(raf)
-  }, [isRunning])
-
-  const onPleaseWait = () => {
-    inc()
-    if (!isRunning) {
-      start()
-      toast.success('Building your app…', {
-        description: 'Hang tight, we\'re setting everything up.',
-      })
-    } else {
-      pause()
-      toast.info('Taking a short pause', {
-        description: 'We\'ll continue shortly.',
-      })
-    }
-  }
-
-  const formatted = formatDuration(elapsedMs)
-
-  return (
-    <AppLayout>
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground p-4 overflow-hidden relative">
-        <ThemeToggle />
-        <div className="absolute inset-0 bg-gradient-rainbow opacity-10 dark:opacity-20 pointer-events-none" />
-        <div className="text-center space-y-8 relative z-10 animate-fade-in">
-          <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-primary floating">
-              <Sparkles className="w-8 h-8 text-white rotating" />
-            </div>
+  };
+  if (loading) {
+    return (
+      <AppLayout container>
+        <div className="space-y-8">
+          <div className="flex justify-between items-center">
+            <Skeleton className="h-10 w-48" />
+            <Skeleton className="h-10 w-10 rounded-full" />
           </div>
-          <h1 className="text-5xl md:text-7xl font-display font-bold text-balance leading-tight">
-            Creating your <span className="text-gradient">app</span>
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto text-pretty">
-            Your application would be ready soon.
-          </p>
-          <div className="flex justify-center gap-4">
-            <Button 
-              size="lg"
-              onClick={onPleaseWait}
-              className="btn-gradient px-8 py-4 text-lg font-semibold hover:-translate-y-0.5 transition-all duration-200"
-              aria-live="polite"
-            >
-              Please Wait
-            </Button>
+          <div className="grid gap-4 md:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-32 rounded-xl" />
+            ))}
           </div>
-          <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-            <div>
-              Time elapsed: <span className="font-medium tabular-nums text-foreground">{formatted}</span>
-            </div>
-            <div>
-              Coins: <span className="font-medium tabular-nums text-foreground">{count}</span>
-            </div>
-          </div>
-          <div className="flex justify-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => { resetTimer(); resetCount(); toast('Reset complete') }}>
-              Reset
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => { inc(); toast('Coin added') }}>
-              Add Coin
-            </Button>
+          <div className="grid gap-6 md:grid-cols-7">
+            <Skeleton className="h-[400px] md:col-span-4 rounded-xl" />
+            <Skeleton className="h-[400px] md:col-span-3 rounded-xl" />
           </div>
         </div>
-        <footer className="absolute bottom-8 text-center text-muted-foreground/80">
-          <p>Powered by Cloudflare</p>
-        </footer>
-        <Toaster richColors closeButton />
+      </AppLayout>
+    );
+  }
+  const transactions = account?.transactions ?? [];
+  const stats = account?.stats ?? { balance: 0, income: 0, expenses: 0 };
+  return (
+    <AppLayout container>
+      <div className="min-h-screen pb-10">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground mt-1">
+              Welcome back, here's your financial overview.
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            <TransactionForm onSubmit={handleAddTransaction} />
+            <ThemeToggle className="static" />
+          </div>
+        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="space-y-6"
+        >
+          {/* Summary Cards */}
+          <section>
+            <SummaryCards stats={stats} />
+          </section>
+          {/* Main Content Grid */}
+          <div className="grid gap-6 md:grid-cols-7 lg:h-[500px]">
+            {/* Chart Area */}
+            <div className="md:col-span-4 h-full min-h-[400px]">
+              <OverviewChart transactions={transactions} />
+            </div>
+            {/* Recent Transactions List */}
+            <div className="md:col-span-3 h-full min-h-[400px]">
+              <TransactionList transactions={transactions.slice(0, 10)} />
+            </div>
+          </div>
+        </motion.div>
       </div>
+      <Toaster richColors position="bottom-right" />
     </AppLayout>
-  )
+  );
 }

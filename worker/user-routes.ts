@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import type { Env } from './core-utils';
-import { UserEntity, ChatBoardEntity } from "./entities";
+import { UserEntity, ChatBoardEntity, FinanceAccountEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
 
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
@@ -71,5 +71,32 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     const list = ids?.filter(isStr) ?? [];
     if (list.length === 0) return bad(c, 'ids required');
     return ok(c, { deletedCount: await ChatBoardEntity.deleteMany(c.env, list), ids: list });
+  });
+
+  // FINANCE
+  app.get('/api/finance/account/:userId', async (c) => {
+    const userId = c.req.param('userId');
+    const account = new FinanceAccountEntity(c.env, userId);
+    await account.getState(); // Ensure initialization
+    return ok(c, await account.getState());
+  });
+
+  app.post('/api/finance/transactions/:userId', async (c) => {
+    const userId = c.req.param('userId');
+    const body = await c.req.json() as any;
+    
+    if (!body.amount || !body.type || !body.category || !body.date) {
+        return bad(c, 'Missing required transaction fields');
+    }
+
+    const account = new FinanceAccountEntity(c.env, userId);
+    const tx = await account.addTransaction({
+        amount: Number(body.amount),
+        type: body.type,
+        category: body.category,
+        date: body.date,
+        description: body.description
+    });
+    return ok(c, tx);
   });
 }
