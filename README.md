@@ -1,6 +1,6 @@
 # Artha - Minimalist Finance Tracker
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/BRYNNV2/artha-minimalist-finance-tracker)
 
 Artha is a visually stunning, minimalist personal finance monitoring application designed to make tracking money effortless and beautiful. It features a sleek, modern dashboard that provides an instant snapshot of financial health, including real-time balance calculation, income vs. expense tracking, and categorization. The application leverages Cloudflare Durable Objects for high-performance, low-latency data persistence, ensuring transactions are saved instantly. The UI is built with a 'glassmorphic' and 'clean' aesthetic, utilizing ample whitespace, subtle gradients, and smooth micro-interactions to reduce financial anxiety and promote clarity. Key features include a quick-add transaction interface, interactive spending charts, and a categorized transaction history ledger.
 
@@ -149,7 +149,7 @@ The app will be live at your Workers subdomain (e.g., `artha-finance-tracker.you
 
 For custom domains or advanced configuration, refer to the [Cloudflare Workers documentation](https://developers.cloudflare.com/workers/).
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/BRYNNV2/artha-minimalist-finance-tracker)
 
 ## Contributing
 
